@@ -15,6 +15,13 @@ Installation
   	$ cd h1-cli
   	$ ./setup.sh
 
+Dependencies
+  
+  - bountyplz (https://github.com/fransr/bountyplz)
+  - cURL
+  - jq
+  - GNU grep (OSX users, please read https://apple.stackexchange.com/a/193300.)
+
 Contributing
 
   I welcome contributions from the public. The issue tracker is
