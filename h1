@@ -1,0 +1,160 @@
+#!/bin/bash
+
+if [[ ! -x "$(command -v jq)" ]]; then
+	echo "You need to install jq in order to run this tool."
+	exit 1
+elif [[ ! -x "$(command -v curl)" ]]; then
+	echo "You need to install cURL in order to run this tool."
+	exit 1
+fi
+
+################################################################
+# Functions
+# Input:  Argument from if statements below.
+# Output: Output to be displayed to the user.
+################################################################
+
+help_menu() {
+	echo """
+             __  __           __             ____                ________    ____
+            / / / /___ ______/ /_____  _____/ __ \____  ___     / ____/ /   /  _/
+           / /_/ / __ \`/ ___/ //_/ _ \/ ___/ / / / __ \/ _ \   / /   / /    / /  
+          / __  / /_/ / /__/ ,< /  __/ /  / /_/ / / / /  __/  / /___/ /____/ /   
+         /_/ /_/\__,_/\___/_/|_|\___/_/   \____/_/ /_/\___/   \____/_____/___/
+      
+                                 By EdOverflow
+
+
+$ h1 <command> <argument>
+
+     hacktivity    Display the latest publicly-disclosed reports on the       h1 hacktivity
+                   HackerOne Hacktivity feed.
+
+     summary       View report summary.                                       h1 summary <report ID>
+
+     fetch         Fetch the report itself.                                   h1 fetch <report ID>
+
+     view          View hacker's publicly-disclosed reports.                  h1 view <username>
+
+     report        Submit a report to HackerOne.                              h1 report <program> <markdown file>
+
+     dork          Quickly construct a Google dork for finding a particular   h1 dork <keyword>
+                   report on HackerOne
+
+     stats         Fetch stats about a hacker on HackerOne.                   h1 stats <username> or h1 stats '<username> <username>'
+
+     leaderboard   Print the current all-time leaderboard.                    h1 leaderboard <range 1-100 (default: 10)>
+
+     search        Search for publicly disclosed reports.                     h1 search <search term>
+	"""
+}
+
+hacktivity() {
+	# h1 hacktivity
+	curl -s -H'Accept: application/json' \
+	"https://hackerone.com/hacktivity?sort_type=popular&filter=type%3Apublic&page=1&range=forever" | 
+	jq -r '.reports[] | "\(.title) by \(.reporter.username) [https://hackerone.com/reports/\(.id)]"'
+}
+
+summary() {
+	# h1 summary <report ID>
+	curl -s -H'Accept: application/json' \
+	"https://hackerone.com/reports/$1.json" | 
+	jq -r '.summaries[] | "\(.content)"' | 
+	fmt -w 80
+}
+
+dork() {
+	# h1 dork <keyword>
+	echo "site:hackerone.com \"$1\" -\"Informative\" -\"Duplicate\" -\"Not Applicable\" -\"Spam\""
+}
+
+stats() {
+	# h1 stats <username>
+	# or
+	# h1 stats '<username> <username> ...'
+	OUTPUT=$(echo "Name‡Rank‡Rep.‡Signal‡Reports"; for i in "$@"; do curl -s -H'Accept: application/json' "https://hackerone.com/$i" | 
+	jq -r '. | "\(.name)‡\(.rank)‡\(.reputation)‡\(.signal)‡\(.report_count)"'; done)
+	echo "$OUTPUT" | column -t -s'‡'
+}
+
+leaderboard() {
+	# h1 leaderboard <range 1-100 (default: 10)>
+	OUTPUT=$(echo "Rank - Username"; curl -s -H'Accept: application/json' \
+	"https://hackerone.com/leaderboard/all-time" | 
+	jq -r '.users[] | "\(.rank)  -  \(.username)"' |
+	head "-$1")
+	echo "$OUTPUT" | column -t -s' '
+}
+
+search() {
+	TERM=$(echo "$1" | sed 's/ /%20/g')
+	curl -s "http://h1.nobbd.de/search.php?q=$TERM" | grep -Eoi '<a class="title"[^>]+' | 
+	grep -Po '(href|title)="\K[^"]+' |
+	tr ' ' '‡' | tr -d "'" | xargs -n 2 | tr '‡' ' '
+}
+
+fetch() {
+	curl -s "https://hackerone.com/reports/$1.json" | 
+	jq -r '.vulnerability_information' |
+	fmt -w 80
+}
+
+view() {
+	curl -s -H'Accept: application/json' "https://hackerone.com/hacktivity?sort_type=latest_disclosable_activity_at&page=1&filter=type%3Apublic%20from%3A$1&range=forever" | 
+	jq -r '.reports[] | "\(.title) ‡https://hackerone.com\(.url)‡"' |
+	column -t -s'‡'
+}
+
+frog() {
+	# h1 frog
+	echo """
+          _,-.     --------------------
+  ,-. ,--'  o ) -(   Frogs find bugs!   )
+  \(,' '  ,,-'     --------------------
+ ,-.\-.__,\\\_
+ \('--'    '\\
+	"""
+}
+
+################################################################
+# Commands (this sort of acts as the main() function)
+# Input:  User input from $1 and $2.
+# Output: Output from selected function.
+################################################################
+
+if [[ $1 == "" ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+	help_menu
+elif [[ $1 == "hacktivity" ]]; then
+	hacktivity
+elif [[ $1 == "summary" ]]; then
+	summary "$2"
+elif [[ $1 == "report" ]]; then
+	if [[ -x "$(command -v bountyplz)" ]]; then
+		bountyplz h1 "$2" "$3"
+	else
+		echo "You need to install https://github.com/fransr/bountyplz#install in order to use this feature."
+	fi
+elif [[ $1 == "dork" ]]; then
+	if [[ -x "$(command -v xclip)" ]]; then
+		dork "$2" | xclip -selection clipboard
+		echo "Google Dork has been copied to your clipboard."
+	else
+		dork "$2"
+	fi
+elif [[ $1 == "stats" ]]; then
+	stats "$2"
+elif [[ $1 == "leaderboard" ]]; then
+	leaderboard $2
+elif [[ $1 == "search" ]]; then
+	search "$2"
+elif [[ $1 == "fetch" ]]; then
+	fetch "$2"
+elif [[ $1 == "view" ]]; then
+	view "$2"
+elif [[ $1 == "frog"  ]]; then
+	frog	
+else
+	echo "Unknown command '$1'"
+	help_menu
+fi

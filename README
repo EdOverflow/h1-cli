@@ -1,0 +1,50 @@
+     __  __           __             ____                ________    ____
+    / / / /___ ______/ /_____  _____/ __ \____  ___     / ____/ /   /  _/
+   / /_/ / __ `/ ___/ //_/ _ \/ ___/ / / / __ \/ _ \   / /   / /    / /  
+  / __  / /_/ / /__/ ,< /  __/ /  / /_/ / / / /  __/  / /___/ /____/ /   
+ /_/ /_/\__,_/\___/_/|_|\___/_/   \____/_/ /_/\___/   \____/_____/___/
+
+  A CLI tool to interact with hackerone.com.
+
+Installation
+
+  To install the tool and all necessary dependencies, run the 
+  following commands:
+
+  	$ git clone git@github.com:EdOverflow/h1-cli.git
+  	$ cd h1-cli
+  	$ ./setup.sh
+
+Contributing
+
+  I welcome contributions from the public. The issue tracker is
+  the preferred channel for bug reports and feature requests. 
+  The bug tracker utilises several labels to help organise and 
+  identify issues. Whenever submitting a new issue, please use 
+  the GitHub issue search first — check if the issue has already 
+  been reported.
+
+  Make sure to run https://github.com/koalaman/shellcheck when you 
+  are done editing or create a shell script. This will help 
+  maintain clean and uniform code throughout the project.
+
+  If you would like to submit a patch via email, that is fine too.
+  Just run the following command and send the patch to contact 
+  [at] edoverflow [dot] com:
+
+    $ git format-patch -<n> <SHA1>
+
+Donations
+
+  If you would like to support my work, you can use any of the 
+  addresses below:
+
+  Liberapay: https://liberapay.com/EdOverflow
+
+  Bitcoin: 1E2fZRNrrkCKPnWpKZAsJzByBoyoBURADN
+
+  Ethereum: 0xe98FC23fB4A8762d700c0354979dA5Db6c29Acc3
+
+License
+
+  MIT License — Copyright (c) 2018 EdOverflow
